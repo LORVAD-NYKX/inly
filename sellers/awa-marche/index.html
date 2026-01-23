@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>INLY — Boutique</title>
+<meta name="description" content="Commande rapide via WhatsApp pour vendeurs informels." />
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="header-inner">
+      <div class="logo">INLY</div>
+      <div class="shop-name" id="shopName"></div>
+    </div>
+  </header>
+
+  <div class="search-wrap">
+    <div class="search">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input id="search" type="search" placeholder="Rechercher un produit...">
+    </div>
+  </div>
+
+  <div id="products" class="grid"></div>
+  <div id="noResults" class="no-results" style="display:none">Aucun produit trouvé</div>
+
+  <div id="pagination" class="pagination">
+    <button id="prevBtn" class="page-btn">← Précédent</button>
+    <div id="pageNumbers" style="display:flex;gap:8px"></div>
+    <button id="nextBtn" class="page-btn">Suivant →</button>
+  </div>
+
+  <div id="quickbar" class="quickbar">
+    <div class="quickbar-content">
+      <div class="quickbar-summary">
+        <div style="font-weight:600;margin-bottom:6px">Votre commande</div>
+        <div class="quickbar-badge" id="quickSummary"></div>
+      </div>
+      <div class="quickbar-form">
+        <input id="customerName" class="quickbar-input" type="text" placeholder="Votre nom *" required>
+        <input id="customerContact" class="quickbar-input" type="tel" placeholder="Votre contact *" required>
+        <input id="customerAddress" class="quickbar-input" type="text" placeholder="Adresse / Points de repère *" required>
+      </div>
+      <button id="quickOrder" class="quickbar-btn">Commander</button>
+    </div>
+  </div>
+
+  <footer>
+    <div>INLY — Pages pro légères pour vendeurs informels. Commande via WhatsApp, mobile‑first.</div>
+    <div class="contact">
+      <a href="https://wa.me/2250715884979?text=Bonjour%20INLY%2C%20je%20suis%20int%C3%A9ress%C3%A9(e)%20par%20une%20page%20comme%20celle-ci" target="_blank">+225 07 15 88 49 79</a> • © INLY
+    </div>
+  </footer>
+</div>
+
+<script src="../../assets/js/main.js"></script>
+</body>
+</html>
