@@ -41,11 +41,13 @@ const PRODUCTS_PER_PAGE = 12;
   const nextBtn = document.getElementById('nextBtn');
   const pageNumbersEl = document.getElementById('pageNumbers');
   const quickbar = document.getElementById('quickbar');
+  const floatingCart = document.getElementById('floatingCart');
   const quickSummary = document.getElementById('quickSummary');
   const customerName = document.getElementById('customerName');
   const customerContact = document.getElementById('customerContact');
   const customerAddress = document.getElementById('customerAddress');
   const quickOrderBtn = document.getElementById('quickOrder');
+  const quickbarClose = document.getElementById('quickbarClose');
 
   function fmt(n){ return n.toLocaleString() + ' ' + seller.currency; }
   function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
@@ -103,18 +105,16 @@ const PRODUCTS_PER_PAGE = 12;
         <div class="thumb">
           <img src="${p.img}" alt="${escapeHtml(p.title)}" loading="lazy">
         </div>
-        <div class="product-info">
-          <div class="title">${escapeHtml(p.title)}</div>
-          <div class="meta">${escapeHtml(p.unit)}</div>
-          <div class="price">${fmt(p.price)}</div>
-          ${variantsHTML}
-          <div class="qty-controls">
-            <button class="qty-btn" data-action="dec" data-id="${p.id}">−</button>
-            <input class="qty-input" type="number" min="0" value="${cartItem.qty}" data-id="${p.id}">
-            <button class="qty-btn" data-action="inc" data-id="${p.id}">+</button>
-          </div>
-          <button class="order-btn" data-id="${p.id}">Commander</button>
+        <div class="title">${escapeHtml(p.title)}</div>
+        <div class="meta">${escapeHtml(p.unit)}</div>
+        <div class="price">${fmt(p.price)}</div>
+        ${variantsHTML}
+        <div class="qty-controls">
+          <button class="qty-btn" data-action="dec" data-id="${p.id}">−</button>
+          <input class="qty-input" type="number" min="0" value="${cartItem.qty}" data-id="${p.id}">
+          <button class="qty-btn" data-action="inc" data-id="${p.id}">+</button>
         </div>
+        <button class="order-btn" data-id="${p.id}">Commander</button>
       </article>
     `}).join('');
     
@@ -204,18 +204,34 @@ const PRODUCTS_PER_PAGE = 12;
     } else {
       cart[id] = {qty, color, size};
     }
-    updateQuickbar();
+    updateFloatingCart();
   }
 
-  function updateQuickbar(){
+  // NOUVELLE FONCTION : Met à jour le bouton flottant au lieu de la quickbar
+  function updateFloatingCart(){
     const items = Object.keys(cart).filter(k => cart[k].qty > 0);
     
     if(items.length === 0){
-      quickbar.classList.remove('visible');
+      floatingCart.classList.remove('visible');
       return;
     }
     
-    quickbar.classList.add('visible');
+    floatingCart.classList.add('visible');
+    
+    const total = items.reduce((sum, id) => {
+      const p = seller.products.find(x => x.id === id);
+      return sum + (p.price * cart[id].qty);
+    }, 0);
+    
+    const itemCount = items.reduce((sum, id) => sum + cart[id].qty, 0);
+    const itemText = itemCount === 1 ? 'article' : 'articles';
+    
+    floatingCart.textContent = `${itemCount} ${itemText} • ${fmt(total)}`;
+  }
+
+  // NOUVELLE FONCTION : Remplit et affiche la quickbar
+  function showQuickbar(){
+    const items = Object.keys(cart).filter(k => cart[k].qty > 0);
     
     const lines = items.map(id => {
       const p = seller.products.find(x => x.id === id);
@@ -232,6 +248,12 @@ const PRODUCTS_PER_PAGE = 12;
     }, 0);
     
     quickSummary.innerHTML = `${lines.join(' • ')}<br><strong>Total: ${fmt(total)}</strong>`;
+    quickbar.classList.add('visible');
+  }
+
+  // NOUVELLE FONCTION : Ferme la quickbar
+  function closeQuickbar(){
+    quickbar.classList.remove('visible');
   }
 
   function buildMessage(products, name, contact, address){
@@ -337,6 +359,12 @@ const PRODUCTS_PER_PAGE = 12;
     renderProducts();
   });
 
+  // NOUVEAU : Clic sur le bouton flottant pour ouvrir la quickbar
+  floatingCart.addEventListener('click', showQuickbar);
+  
+  // NOUVEAU : Clic sur le bouton fermer de la quickbar
+  quickbarClose.addEventListener('click', closeQuickbar);
+
   quickOrderBtn.addEventListener('click', () => {
     const name = customerName.value.trim();
     const contact = customerContact.value.trim();
@@ -374,8 +402,9 @@ const PRODUCTS_PER_PAGE = 12;
     customerName.value = '';
     customerContact.value = '';
     customerAddress.value = '';
+    closeQuickbar();
     renderProducts();
-    updateQuickbar();
+    updateFloatingCart();
   });
 
   renderProducts();
