@@ -10,10 +10,8 @@
 <body>
 <div class="wrap">
   <header>
-    <div class="header-inner">
-      <div class="logo">INLY</div>
-      <div class="shop-name" id="shopName"></div>
-    </div>
+    <div class="logo">INLY</div>
+    <div class="shop-name" id="shopName"></div>
   </header>
 
   <div class="search-wrap">
@@ -32,8 +30,13 @@
     <button id="nextBtn" class="page-btn">Suivant →</button>
   </div>
 
+  <!-- NOUVEAU : Bouton flottant du panier -->
+  <div id="floatingCart" class="floating-cart"></div>
+
+  <!-- MODIFIÉ : Quickbar avec bouton fermer -->
   <div id="quickbar" class="quickbar">
     <div class="quickbar-content">
+      <button id="quickbarClose" class="quickbar-close">✕</button>
       <div class="quickbar-summary">
         <div style="font-weight:600;margin-bottom:6px">Votre commande</div>
         <div class="quickbar-badge" id="quickSummary"></div>
@@ -43,7 +46,7 @@
         <input id="customerContact" class="quickbar-input" type="tel" placeholder="Votre contact *" required>
         <input id="customerAddress" class="quickbar-input" type="text" placeholder="Adresse / Points de repère *" required>
       </div>
-      <button id="quickOrder" class="quickbar-btn">Commander</button>
+      <button id="quickOrder" class="quickbar-btn">Commander sur WhatsApp</button>
     </div>
   </div>
 
