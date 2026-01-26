@@ -103,16 +103,18 @@ const PRODUCTS_PER_PAGE = 12;
         <div class="thumb">
           <img src="${p.img}" alt="${escapeHtml(p.title)}" loading="lazy">
         </div>
-        <div class="title">${escapeHtml(p.title)}</div>
-        <div class="meta">${escapeHtml(p.unit)}</div>
-        <div class="price">${fmt(p.price)}</div>
-        ${variantsHTML}
-        <div class="qty-controls">
-          <button class="qty-btn" data-action="dec" data-id="${p.id}">−</button>
-          <input class="qty-input" type="number" min="0" value="${cartItem.qty}" data-id="${p.id}">
-          <button class="qty-btn" data-action="inc" data-id="${p.id}">+</button>
+        <div class="product-info">
+          <div class="title">${escapeHtml(p.title)}</div>
+          <div class="meta">${escapeHtml(p.unit)}</div>
+          <div class="price">${fmt(p.price)}</div>
+          ${variantsHTML}
+          <div class="qty-controls">
+            <button class="qty-btn" data-action="dec" data-id="${p.id}">−</button>
+            <input class="qty-input" type="number" min="0" value="${cartItem.qty}" data-id="${p.id}">
+            <button class="qty-btn" data-action="inc" data-id="${p.id}">+</button>
+          </div>
+          <button class="order-btn" data-id="${p.id}">Commander</button>
         </div>
-        <button class="order-btn" data-id="${p.id}">Commander</button>
       </article>
     `}).join('');
     
