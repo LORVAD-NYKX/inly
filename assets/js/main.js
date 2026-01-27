@@ -27,12 +27,14 @@ const PRODUCTS_PER_PAGE = 12;
 (function(){
   const seller = window.SELLER;
   const PRODUCTS_PER_PAGE = window.PRODUCTS_PER_PAGE || 12;
-  const cart = {};
+  const cart = {}; // Panier : chaque produit avec ses variants et quantité
   let currentPage = 1;
   let filteredProducts = seller.products;
   
+  // Afficher le nom du vendeur dans le header
   document.getElementById('shopName').textContent = seller.name;
   
+  // Récupération de tous les éléments DOM qu'on va utiliser
   const productsEl = document.getElementById('products');
   const noResultsEl = document.getElementById('noResults');
   const searchInput = document.getElementById('search');
@@ -49,14 +51,19 @@ const PRODUCTS_PER_PAGE = 12;
   const quickOrderBtn = document.getElementById('quickOrder');
   const quickbarClose = document.getElementById('quickbarClose');
 
+  // Fonction pour formater les prix avec espaces (ex: 15 000 FCFA)
   function fmt(n){ return n.toLocaleString() + ' ' + seller.currency; }
+  
+  // Fonction pour échapper les caractères spéciaux HTML (sécurité)
   function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
+  // Fonction qui affiche les produits sur la page
   function renderProducts(){
     const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);
     const start = (currentPage - 1) * PRODUCTS_PER_PAGE;
     const list = filteredProducts.slice(start, start + PRODUCTS_PER_PAGE);
     
+    // Si aucun produit trouvé, afficher un message
     if(filteredProducts.length === 0){
       productsEl.innerHTML = '';
       noResultsEl.style.display = 'block';
@@ -67,10 +74,12 @@ const PRODUCTS_PER_PAGE = 12;
     noResultsEl.style.display = 'none';
     paginationEl.style.display = totalPages > 1 ? 'flex' : 'none';
     
+    // Créer le HTML pour chaque produit
     productsEl.innerHTML = list.map(p => {
       const cartItem = cart[p.id] || {qty: 0};
       let variantsHTML = '';
       
+      // Si le produit a des variantes (couleur, taille), les afficher
       if(p.variants){
         variantsHTML = '<div class="variants">';
         
@@ -121,6 +130,7 @@ const PRODUCTS_PER_PAGE = 12;
     renderPagination(totalPages);
   }
 
+  // Fonction qui affiche la pagination
   function renderPagination(totalPages){
     if(totalPages <= 1){
       paginationEl.style.display = 'none';
@@ -180,6 +190,7 @@ const PRODUCTS_PER_PAGE = 12;
     });
   }
 
+  // Bouton page précédente
   prevBtn.addEventListener('click', () => {
     if(currentPage > 1){
       currentPage--;
@@ -188,6 +199,7 @@ const PRODUCTS_PER_PAGE = 12;
     }
   });
 
+  // Bouton page suivante
   nextBtn.addEventListener('click', () => {
     const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);
     if(currentPage < totalPages){
@@ -197,6 +209,7 @@ const PRODUCTS_PER_PAGE = 12;
     }
   });
 
+  // Fonction pour mettre à jour le panier
   function updateCart(id, qty, color, size){
     qty = Math.max(0, parseInt(qty) || 0);
     if(qty === 0){
@@ -207,15 +220,17 @@ const PRODUCTS_PER_PAGE = 12;
     updateFloatingCart();
   }
 
-  // NOUVELLE FONCTION : Met à jour le bouton flottant au lieu de la quickbar
+  // Fonction pour mettre à jour le bouton flottant (affiche le nombre d'articles et le total)
   function updateFloatingCart(){
     const items = Object.keys(cart).filter(k => cart[k].qty > 0);
     
+    // Si le panier est vide, on cache le bouton flottant
     if(items.length === 0){
       floatingCart.classList.remove('visible');
       return;
     }
     
+    // Sinon on l'affiche avec le résumé
     floatingCart.classList.add('visible');
     
     const total = items.reduce((sum, id) => {
@@ -229,7 +244,7 @@ const PRODUCTS_PER_PAGE = 12;
     floatingCart.textContent = `${itemCount} ${itemText} • ${fmt(total)}`;
   }
 
-  // NOUVELLE FONCTION : Remplit et affiche la quickbar
+  // Fonction pour afficher la quickbar avec le détail du panier
   function showQuickbar(){
     const items = Object.keys(cart).filter(k => cart[k].qty > 0);
     
@@ -251,11 +266,12 @@ const PRODUCTS_PER_PAGE = 12;
     quickbar.classList.add('visible');
   }
 
-  // NOUVELLE FONCTION : Ferme la quickbar
+  // Fonction pour fermer la quickbar
   function closeQuickbar(){
     quickbar.classList.remove('visible');
   }
 
+  // Fonction pour construire le message WhatsApp
   function buildMessage(products, name, contact, address){
     let lines = [`Bonjour ${seller.name},`, '', 'Je souhaite commander:', ''];
     
@@ -277,49 +293,57 @@ const PRODUCTS_PER_PAGE = 12;
     return encodeURIComponent(lines.join('\n'));
   }
 
+  // Gestion des clics sur les produits
   productsEl.addEventListener('click', e => {
     const btn = e.target.closest('[data-action], .order-btn');
     if(!btn) return;
     
     const id = btn.getAttribute('data-id');
     
+    // NOUVEAU COMPORTEMENT : Le bouton "Commander" ajoute au panier et ouvre la quickbar
     if(btn.classList.contains('order-btn')){
       const product = seller.products.find(p => p.id === id);
       const input = productsEl.querySelector(`.qty-input[data-id="${id}"]`);
-      const qty = Math.max(1, parseInt(input.value) || 1);
+      let qty = parseInt(input.value) || 0;
       
+      // Si quantité = 0, on met automatiquement 1
       if(qty === 0){
-        alert('Veuillez sélectionner une quantité');
-        return;
+        qty = 1;
+        input.value = 1;
       }
       
-      const item = cart[id] || {qty};
+      const item = cart[id] || {qty: 0};
       
+      // Vérifier que les variantes sont sélectionnées
       if(product.variants){
-        if(product.variants.colors && !item.color){
-          alert('Veuillez sélectionner une couleur');
-          return;
+        if(product.variants.colors){
+          const colorSelect = productsEl.querySelector(`.variant-select[data-id="${id}"][data-type="color"]`);
+          if(colorSelect && !colorSelect.value){
+            alert('Veuillez sélectionner une couleur');
+            return;
+          }
+          item.color = colorSelect ? colorSelect.value : null;
         }
-        if(product.variants.sizes && !item.size){
-          alert('Veuillez sélectionner une taille');
-          return;
+        if(product.variants.sizes){
+          const sizeSelect = productsEl.querySelector(`.variant-select[data-id="${id}"][data-type="size"]`);
+          if(sizeSelect && !sizeSelect.value){
+            alert('Veuillez sélectionner une taille');
+            return;
+          }
+          item.size = sizeSelect ? sizeSelect.value : null;
         }
       }
       
-      const name = prompt('Votre nom:') || 'Client';
-      const contact = prompt('Votre contact:') || '';
-      const address = prompt('Adresse / Points de repère:') || '';
+      // Ajouter au panier
+      updateCart(id, qty, item.color, item.size);
       
-      if(!contact || !address){
-        alert('Veuillez renseigner tous les champs');
-        return;
-      }
+      // Ouvrir la quickbar directement
+      showQuickbar();
       
-      const msg = buildMessage([{product, item: {...item, qty}}], name, contact, address);
-      window.open(`https://wa.me/${seller.phone.replace(/\D/g,'')}?text=${msg}`, '_blank');
       return;
     }
     
+    // Gestion des boutons + et -
     const action = btn.getAttribute('data-action');
     const input = productsEl.querySelector(`.qty-input[data-id="${id}"]`);
     let val = parseInt(input.value) || 0;
@@ -334,6 +358,7 @@ const PRODUCTS_PER_PAGE = 12;
     updateCart(id, val, item.color, item.size);
   });
 
+  // Gestion du changement de variantes (couleur/taille)
   productsEl.addEventListener('change', e => {
     if(e.target.classList.contains('variant-select')){
       const id = e.target.getAttribute('data-id');
@@ -345,6 +370,7 @@ const PRODUCTS_PER_PAGE = 12;
     }
   });
 
+  // Gestion de la modification manuelle de la quantité
   productsEl.addEventListener('input', e => {
     if(!e.target.classList.contains('qty-input')) return;
     const id = e.target.getAttribute('data-id');
@@ -352,6 +378,7 @@ const PRODUCTS_PER_PAGE = 12;
     updateCart(id, e.target.value, item.color, item.size);
   });
 
+  // Recherche de produits
   searchInput.addEventListener('input', e => {
     const term = e.target.value.trim().toLowerCase();
     filteredProducts = seller.products.filter(p => p.title.toLowerCase().includes(term));
@@ -359,12 +386,13 @@ const PRODUCTS_PER_PAGE = 12;
     renderProducts();
   });
 
-  // NOUVEAU : Clic sur le bouton flottant pour ouvrir la quickbar
+  // Clic sur le bouton flottant pour ouvrir la quickbar
   floatingCart.addEventListener('click', showQuickbar);
   
-  // NOUVEAU : Clic sur le bouton fermer de la quickbar
+  // Clic sur le bouton fermer de la quickbar
   quickbarClose.addEventListener('click', closeQuickbar);
 
+  // Validation de la commande
   quickOrderBtn.addEventListener('click', () => {
     const name = customerName.value.trim();
     const contact = customerContact.value.trim();
@@ -375,6 +403,7 @@ const PRODUCTS_PER_PAGE = 12;
       return;
     }
     
+    // Vérifier que toutes les variantes sont sélectionnées
     for(let id of Object.keys(cart)){
       if(cart[id].qty === 0) continue;
       const product = seller.products.find(p => p.id === id);
@@ -398,6 +427,7 @@ const PRODUCTS_PER_PAGE = 12;
     const msg = buildMessage(items, name, contact, address);
     window.open(`https://wa.me/${seller.phone.replace(/\D/g,'')}?text=${msg}`, '_blank');
     
+    // Réinitialiser le panier et fermer la quickbar
     Object.keys(cart).forEach(k => delete cart[k]);
     customerName.value = '';
     customerContact.value = '';
@@ -407,5 +437,6 @@ const PRODUCTS_PER_PAGE = 12;
     updateFloatingCart();
   });
 
+  // Lancer l'affichage initial
   renderProducts();
 })();
